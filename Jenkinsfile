@@ -7,13 +7,17 @@ Written by Mick Tarsel
 
 node ('124') {
 
-    stage('Build') {
-        echo 'Building..'
+    stage('GetVersion') {
         sh "uname -r"
-    }
-    stage('Test') {
-        echo 'Testing..'
         sh "ovs-vsctl show"
+    }
+    stage('ObtainTest') {
+	sh "cd /root/mick; wget https://raw.githubusercontent.com/mtarsel/ovs-testplan/master/runall.sh;"
+    }
+    stage('RunTestALL') {
+        echo 'Testing..'
+        sh "chmod +x /root/mick/runall.sh"
+	sh "./root/mick/runall.sh"
     }
     stage('Deploy') {
         echo 'Deploying....'
