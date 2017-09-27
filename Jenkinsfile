@@ -17,7 +17,7 @@ node ('124') {
     stage('RunTestALL') {
         echo 'Testing..'
         sh "chmod +x /root/mick/runall.sh"
-	sh "./root/mick/runall.sh"
+	sh "source /root/mick/runall.sh"
     }
     stage('Deploy') {
         echo 'Deploying....'
