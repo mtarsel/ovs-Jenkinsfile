@@ -4,7 +4,7 @@ Written by Mick Tarsel
 
 */
 
-
+pipeline {
 node ('124') {
 
     stage('GetVersion') {
@@ -16,7 +16,7 @@ node ('124') {
 	sh "systemctl is-active openvswitch"
     }
 
-    stage('CreateNS') {
+    stage('Create NameSpaces') {
 
         sh '''
 	NUMNS=4
@@ -47,12 +47,12 @@ node ('124') {
 	done
 	'''
     }
-    stage('CreateBridges') {
+    stage('Create Bridges') {
        sh '''
 	ovs-vsctl add-br br0
 	'''
     }
-    stage('AttachAll') {
+    stage('Attach All NS to Bridge') {
         sh '''
 	NS=$(ip netns list | wc -l)
 
@@ -62,7 +62,7 @@ node ('124') {
 	done
 	'''
     }
-    stage('SetupVLAN') {
+    stage('Setup VLAN') {
         sh '''
 	for i in `seq 1 4`; do
 		#split tags into 100 and 200 from 4 ns
@@ -77,7 +77,7 @@ node ('124') {
 	done
 	'''
     }
-    stage('TestVLAN') {
+    stage('Test VLAN') {
         sh '''
 	#tag=100
 	ip netns exec ns1 ping -c2 10.0.0.30
@@ -101,6 +101,4 @@ node ('124') {
 		'''
         }
     }
-
-
-}
+}}
