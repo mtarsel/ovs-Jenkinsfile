@@ -4,7 +4,6 @@ Written by Mick Tarsel
 
 */
 
-pipeline {
 node ('124') {
 
     stage('GetVersion') {
@@ -90,7 +89,7 @@ node ('124') {
 	'''
     }
 
- post {
+ /*post {
         always {
             sh '''
 		for i in 1 2 3 4; do
@@ -100,5 +99,5 @@ node ('124') {
 		ovs-vsctl del-br br0
 		'''
         }
-    }
-}}
+    }*/
+}
