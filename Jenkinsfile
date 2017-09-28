@@ -11,11 +11,9 @@ node ('124') {
         sh "uname -r"
         sh "ovs-vsctl show"
     }
-    stage('VerifyOVS') {
+
+    stage('Verify OVS is running') {
 	sh "systemctl is-active openvswitch"
-    }
-    stage('ClearIt') {
-	sh "ip -all netns del; ovs-vsctl del-br br0"
     }
 
     stage('CreateNS') {
