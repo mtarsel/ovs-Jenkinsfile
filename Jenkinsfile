@@ -54,20 +54,9 @@ node ('124') {
 	ovs-vsctl add-br br0
 	'''
     }
-    stage('AddPorts') {
-        echo 'Deploying....'
-        sh "echo 'mick was here'"
-    }
     stage('AttachAll') {
         sh '''
 	NS=$(ip netns list | wc -l)
-
-	#TODO NS is used here and never checked. NUMNS is not local so it found it anyways
-	# maybe [ -z NS] or somethin
-	if [ $NS -ne $NUMNS ]; then
-		echo "namespaces not setup correctly"
-		echo "we can set bash variables?"
-	fi
 
 	#attach namespace port to OVS	
 	for i in `seq 1 $NS`; do
