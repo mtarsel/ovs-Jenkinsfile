@@ -91,14 +91,17 @@ node ('124') {
 
 	'''
     }
-    stage('ClearAll') {
-        sh '''
-	for i in 1 2 3 4; do
-		ip link del p$i
-	done
-	ip -all netns del
-	ovs-vsctl del-br br0
-	'''
+
+ post {
+        always {
+            sh '''
+		for i in 1 2 3 4; do
+			ip link del p$i
+		done
+		ip -all netns del
+		ovs-vsctl del-br br0
+		'''
+        }
     }
 
 
