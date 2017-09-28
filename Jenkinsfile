@@ -15,7 +15,7 @@ node ('124') {
 	sh "systemctl is-active openvswitch"
     }
     stage('ClearIt') {
-	sh "ip -all netns del"
+	sh "ip -all netns del; ovs-vsctl del-br br0"
     }
 
     stage('CreateNS') {
