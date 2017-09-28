@@ -36,7 +36,7 @@ node ('124') {
 		ip link set dev p$i up
 
 		#add ten to last octet of network ip addr
-		IP=$(echo $IP | awk -F. '{printf "%d.%d.%d.%d", $1,$2,$3,$4+10}')
+		IP=$(echo $IP | awk -F. '{printf "%d.%d.%d.%d", 10,$2,$3,$4+10}')
         
 		#assign ip addresses.
 		ip netns exec ns$i ip add add $IP/16 dev tap$i
