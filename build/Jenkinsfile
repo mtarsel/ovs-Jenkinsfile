@@ -1,0 +1,34 @@
+node ('124') {
+
+    stage('Check Out') {
+        dir ('ovs') {
+            git 'https://github.com/openvswitch/ovs.git'
+        }
+        sh '''
+        cd ovs/
+        git checkout v2.8.0
+        '''
+    }
+
+    stage('Configure') {
+	    sh '''
+	        cd ovs/
+	        ./boot.sh
+            ./configure --prefix=/usr --localstatedir=/var --sysconfdir=/etc
+	    '''
+    }
+
+    stage('Build') {
+    sh '''
+        cd ovs/
+        make
+        echo $?
+    '''
+    }
+
+    stage('Test') {
+    sh '''
+    echo 'not yet'
+    '''
+    }
+}
