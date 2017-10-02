@@ -26,9 +26,41 @@ node ('124') {
     '''
     }
 
-    stage('Test') {
+    stage('Initial Tests') {
     sh '''
-    echo 'not yet'
+    	make check
+    '''
+    }
+
+    stage('Testing Userspace Datapath') {
+    sh '''
+    	make check-system-userspace
+	echo 'output stored in tests/system-userspace-traffic.dir'
+    '''
+    }
+
+    stage('Installed Kernel Module Test') {
+    sh '''
+    	make check-kernel
+    '''
+    }
+
+    stage('Building Module') {
+    sh '''
+    	make modules_install
+	config_file="/etc/depmod.d/openvswitch.conf"
+	for module in datapath/linux/*.ko; do
+ 		modname="$(basename ${module})"
+ 		echo "override ${modname%.ko} * extra" >> "$config_file"
+  		echo "override ${modname%.ko} * weak-updates" >> "$config_file"
+  	done
+	depmod -a
+	modprobe openvswitch
+    '''
+    }
+    stage('Testing Kernel Module from Build') {
+    sh '''
+    	make check-kernel
     '''
     }
 }
