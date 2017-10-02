@@ -28,12 +28,14 @@ node ('124') {
 
     stage('Initial Tests') {
     sh '''
+	cd ovs/
     	make check
     '''
     }
 
     stage('Testing Userspace Datapath') {
     sh '''
+	cd ovs/
     	make check-system-userspace
 	echo 'output stored in tests/system-userspace-traffic.dir'
     '''
@@ -41,12 +43,14 @@ node ('124') {
 
     stage('Installed Kernel Module Test') {
     sh '''
+	cd ovs/
     	make check-kernel
     '''
     }
 
     stage('Building Module') {
     sh '''
+	cd ovs/
     	make modules_install
 	config_file="/etc/depmod.d/openvswitch.conf"
 	for module in datapath/linux/*.ko; do
@@ -60,6 +64,7 @@ node ('124') {
     }
     stage('Testing Kernel Module from Build') {
     sh '''
+	cd ovs/
     	make check-kernel
     '''
     }
