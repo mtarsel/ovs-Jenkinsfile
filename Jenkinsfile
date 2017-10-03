@@ -51,11 +51,13 @@ node ('124') {
 	done
 	'''
     }
+
     stage('Create Bridges') {
        sh '''
 	ovs-vsctl add-br br0
 	'''
     }
+
     stage('Attach All NS to Bridge') {
         sh '''
 	NS=$(ip netns list | wc -l)
@@ -66,6 +68,7 @@ node ('124') {
 	done
 	'''
     }
+
     stage('Setup VLAN') {
         sh '''
 	for i in `seq 1 4`; do
@@ -81,6 +84,7 @@ node ('124') {
 	done
 	'''
     }
+
     stage('Test VLAN') {
         sh '''
 	#tag=100
@@ -94,7 +98,80 @@ node ('124') {
 	'''
     }
 
- /*post {
+    stage('Setup Bonding') {
+        sh '''
+	ovs-vsctl add-br br-bonding
+	for i in 1 2; do
+		#last octet in IP is 10,20
+		ip=$(($i*10))
+		#ovs-vsctl del-port br-$NUMBR p$i
+		ip add del 10.0.0.$ip/16 dev p$i
+		#only add ip to tap interface in ns
+		#ip add add 10.0.0.15/16 dev p$i
+		ip netns exec ns$i ip add del 10.0.0.$ip/16 dev tap$i
+ 		ip netns exec ns$i ip add add 10.0.0.15/16 dev tap$i
+		ip link set dev p$i up
+		ip netns exec ns$i ip link set dev tap$i up
+	done
+	
+	#TODO remove IP addres so routes are not created
+	ip add del 10.0.0.30/16 dev p3
+	ip add del 10.0.0.40/16 dev p4
+		
+	#TODO
+	ip add add 10.0.0.1/16 dev br-1
+	
+	ovs-vsctl add-bond br-bonding bond0 p1 p2 bond_mode=active-backup
+
+	#install_netcat if needed
+	if [ $(rpm -qa | grep ncat | wc -l) -eq 0 ]; then
+		yum install nmap-ncat
+	fi
+
+	'''
+    }
+    
+    stage('Ping Bond Ports') {
+        sh '''
+	       #ping -c2 10.0.0.15
+	ping 10.0.0.15 > bond_ping.results 2>&1 &
+
+        echo "bringin down interface p$active..."
+        ip netns exec ns$active ip link set tap$active down
+        ip link set p$active down
+
+	local varsleep=60
+        echo "sleepign $varsleep seconds...."
+        sleep $varsleep
+
+        # ping -c2 10.0.0.15
+	'''
+    }
+
+
+   /* stage('Create 1000 Ports') {
+        sh '''
+	for i in `seq 1 4`; do
+		#single-ns $i
+		ip link add dum$i type dummy	
+		#testitPASS ovs-vsctl add-port $bridge_name p$i
+		ovs-vsctl add-port $bridge_name dum$i
+		echo "added dum$i"
+	done
+	'''
+    }
+
+	stage('Delete 1000 Ports') {
+        sh '''
+	for i in `seq 1 4`; do
+		#testitPASS ovs-vsctl add-port $bridge_name p$i
+		ovs-vsctl del-port $bridge_name dum$i
+		ip link del dum$i
+	done
+	'''
+    }
+
+ post {
         always {
             sh '''
 		for i in 1 2 3 4; do
