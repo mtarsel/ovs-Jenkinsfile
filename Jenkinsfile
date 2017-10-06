@@ -77,8 +77,8 @@ node ('124') {
 	
 		ovs-vsctl set port p$i tag=$tag
 
-		#ovs-vsctl add-port br-01 p1 tag=100
-		#ovs-vsctl add-port br-01 p2 tag=200
+		#ovs-vsctl add-port br0 p1 tag=100
+		#ovs-vsctl add-port br0 p2 tag=200
 		#p3 tag=100
 		#p4 tag=200
 	done
@@ -97,6 +97,24 @@ node ('124') {
 
 	'''
     }
+/*
+#Both ping and netperf are run
+#under these 4 combinations of offload settings:
+#  gro on gso on tso on tx on
+#  gro off gso on tso on tx on
+#  gro on gso off tso off tx on
+#  gro on gso on tso off tx off
+    stage('gro on gso on tso on tx on') {
+	sh '''
+	if ethtool -k p1 | grep -q "tcp-segmentation-offload: on"; then
+		echo "tso on"
+		ethtool -K p1 tso off
+	else 
+		echo "tso off"
+	fi
+	'''
+    }*/
+
 
     stage('Setup Bonding') {
         sh '''
@@ -114,6 +132,7 @@ node ('124') {
 		ip link set dev p$i up
 		ip netns exec ns$i ip link set dev tap$i up
 	done
+	'''
 	/*
 	#TODO remove IP addres so routes are not created
 	ip add del 10.0.0.30/16 dev p3
@@ -125,7 +144,6 @@ node ('124') {
 		yum install nmap-ncat
 	fi*/
 
-	'''
     }
 
     stage('Create br-bond Bridge and Add IP') {
@@ -154,6 +172,14 @@ node ('124') {
 	sh '''
         sleep 120
         ping -c2 10.0.0.15
+	'''
+    }
+
+    stage ('Remove All Bridges'){
+	sh '''
+
+	ovs-vsctl del-br br*
+
 	'''
     }
 
