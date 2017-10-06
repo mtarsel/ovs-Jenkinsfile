@@ -1,0 +1,42 @@
+prep.sh setup the guest and ovs properly
+==========
+-verify version of QEMU
+-generate an XML file from .iso or something
+-ovs is installed and running
+-it all starts properly
+
+
+pvp.sh checks if guest exists then sets up pvp
+==========
+-verify that prep.sh has ran or it is setup properly
+-hugepages
+-pci slots
+-vfio
+-single CPU?
+-ovs and dpdk commands
+
+#TODO
+# SLB load balanching bonding - see some traffic on both interfaces
+#QoS
+#SPAN
+# mulithost (use RH scripts for VM creation)
+	#VXLAN
+	#GRE
+	#Geneve 
+# 1,0000 ports creation/deletion (kexin test plan)
+# Run netperf between 100 pairs of VMs over 100 vxlans connected
+#	both TCP and UDP for netperf tests
+# UDP_STREAM running with message size = [64,256,1024}
+
+#Both ping and netperf are run
+#under these 4 combinations of offload settings:
+#  gro on gso on tso on tx on
+#  gro off gso on tso on tx on
+#  gro on gso off tso off tx on
+#  gro on gso on tso off tx off
+# with and without MTU set
+
+#ping between guests...done
+#	in same VLANs...done
+#	 different VLANs ...done
+#netperf between guests in same VLANs??

@@ -194,6 +194,77 @@ node ('124') {
 	'''
     }
 
+    stage ('Configure DPDK on System') {
+	sh '''
+	modprobe vfio-pci
+	echo 'DPDK_OPTIONS="-c 10101 -n 4 --socket-mem 1024,0"' >> /etc/sysconfig/openvswitch
+	systemctl restart openvswitch
+	sleep 2
+	if [ $(pgrep ovs | wc -l) -eq 0 ];then
+		echo "****ERROR**** OVS processes not started"
+		echo "EXITING NOW"
+		exit 69
+	fi
+	'''
+    }
+
+    stage ('Configure DPDK in OVS') {
+	sh '''
+	ovs-vsctl set Open_vSwitch . other_config:pmd-cpu-mask=10101
+	ovs-vsctl --no-wait  set Open_vSwitch . other_config:dpdk-socket-mem="1024"
+
+	if ! ovs-vsctl get Open_vSwitch . iface_types | grep -q "dpdk"; then
+		echo "****ERROR**** dpdk not configured in OVS."
+		echo "EXITING NOW"
+		exit 1
+	fi
+	'''
+    }
+
+    stage ('Prepare DPDK Ports with driverctl') {
+	sh '''
+	pcis=$(lspci | grep XL | cut -d ' ' -f1 | cut -d$'\n' -f1)
+	pci1=$(echo $pcis | cut -d ' ' -f1)
+	pci2=$(echo $pcis | cut -d ' ' -f2)
+
+	#2 ways do the same. RH uses driverctl
+	driverctl set-override $pci1 vfio-pci
+	driverctl set-override $pci2 vfio-pci
+	#dpdk-devbind --bind=vfio-pci 0002:01:00.1
+	#or dpdk-devbind --bind=vfio-pci 0002:01:00.0
+	if [ $(driverctl list-devices | grep vfio-pci | wc -l) -eq 0 ]; then
+		echo "****ERROR**** vfio not configured"
+		echo "$pci1 and/or $pci2 are not configured with vfio"
+		echo "EXITING NOW"
+		exit 1
+	fi	
+	'''
+    }
+
+    stage ('Add dpdk Ports to OVS') {
+	sh '''
+	ovs-vsctl add-br br0 -- set bridge br0 datapath_type=netdev
+	ovs-vsctl add-port br0 dpdk0 -- set Interface dpdk0 type=dpdk options:dpdk-devargs=$pci1 ofport_request=10 
+	ovs-vsctl add-port br0 dpdk1 -- set Interface dpdk1 type=dpdk options:dpdk-devargs=$pci2 ofport_request=11
+	'''
+    }
+
+    stage ('Del defaul flows and Add New Ones') {
+	sh '''
+	ovs-ofctl del-flows br0
+	ovs-ofctl add-flow br0 in_port=10,action=11
+	ovs-ofctl add-flow br0 in_port=11,action=10
+	'''
+    }
+
+ stage ('Add dpdkvhostuser Ports') {
+	sh '''
+   	ovs-vsctl add-port br0 vhost0 \
+	-- set interface vhost0 type=dpdkvhostuser ofport_request=20
+	ovs-vsctl add-port br0 vhost1 \
+	-- set interface vhost1 type=dpdkvhostuser ofport_request=21
+    	'''
+    }
 
    /* stage('Create 1000 Ports') {
         sh '''
