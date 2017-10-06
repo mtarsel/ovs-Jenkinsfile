@@ -157,8 +157,6 @@ node ('124') {
 
     stage('Create br-bond Bridge and Add IP') {
     sh '''
-	ovs-vsctl del-port br0 p1
-	ovs-vsctl del-port br0 p2
 	ovs-vsctl add-bond br-bond bond0 p1 p2 bond_mode=active-backup
 	ip add add 10.0.0.1/16 dev br-bond
     '''
