@@ -16,8 +16,10 @@ node ('124') {
     }
 
     stage('Clean workspace') {
-	sh '''ip -all netns del || echo No namespaces.'''
-	sh '''ovs-vsctl del-br br* || echo No bridges'''
+	sh '''ip -all netns del || echo No namespaces.
+	ovs-vsctl del-br br-bond || echo del br-bond
+	ovs-vsctl del-br br0 || echo No bridgez
+	'''
     }
 
     stage('Create NameSpaces') {
@@ -187,9 +189,8 @@ node ('124') {
 
     stage ('Remove All Bridges'){
 	sh '''
-
-	ovs-vsctl del-br br*
-
+	ovs-vsctl del-br br0
+	ovs-vsctl del-br br-bond
 	'''
     }
 
