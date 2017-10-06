@@ -100,11 +100,12 @@ node ('124') {
 
     stage('Setup Bonding') {
         sh '''
-	ovs-vsctl add-br br-bonding
+	
+	echo "resetting ns1 and ns2 for bonding"
 	for i in 1 2; do
 		#last octet in IP is 10,20
 		ip=$(($i*10))
-		#ovs-vsctl del-port br-$NUMBR p$i
+
 		ip add del 10.0.0.$ip/16 dev p$i
 		#only add ip to tap interface in ns
 		#ip add add 10.0.0.15/16 dev p$i
@@ -113,38 +114,46 @@ node ('124') {
 		ip link set dev p$i up
 		ip netns exec ns$i ip link set dev tap$i up
 	done
-	
+	/*
 	#TODO remove IP addres so routes are not created
 	ip add del 10.0.0.30/16 dev p3
 	ip add del 10.0.0.40/16 dev p4
-		
-	#TODO
-	ip add add 10.0.0.1/16 dev br-1
-	
-	ovs-vsctl add-bond br-bonding bond0 p1 p2 bond_mode=active-backup
+	*/
 
-	#install_netcat if needed
+	/*#install_netcat if needed
 	if [ $(rpm -qa | grep ncat | wc -l) -eq 0 ]; then
 		yum install nmap-ncat
-	fi
+	fi*/
 
 	'''
     }
+
+    stage('Create br-bond Bridge and Add IP') {
+    sh '''
+	ovs-vsctl add-bond br-bond bond0 p1 p2 bond_mode=active-backup
+	ip add add 10.0.0.1/16 dev br-bond
+    '''
+    }
     
-    stage('Ping Bond Ports') {
+    stage('Ping Active Port and Bring Down') {
         sh '''
-	       #ping -c2 10.0.0.15
+	echo "getting active port"
+	str=$(ovs-appctl bond/show bond0 | awk ' /p{1,2}/ {print $4 }')
+	active="${str:$((${#str}-2)):1}"
+
+	#ping -c2 10.0.0.15
 	ping 10.0.0.15 > bond_ping.results 2>&1 &
 
         echo "bringin down interface p$active..."
         ip netns exec ns$active ip link set tap$active down
         ip link set p$active down
+	'''
+    }
 
-	local varsleep=60
-        echo "sleepign $varsleep seconds...."
-        sleep $varsleep
-
-        # ping -c2 10.0.0.15
+    stage('Ping New Active Port') {
+	sh '''
+        sleep 120
+        ping -c2 10.0.0.15
 	'''
     }
 
