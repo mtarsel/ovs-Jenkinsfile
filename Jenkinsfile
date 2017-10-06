@@ -180,8 +180,8 @@ node ('124') {
 
     stage('Ping New Active Port') {
 	sh '''
-        sleep 120
-        ping -c2 10.0.0.15
+        #sleep 120
+        ping -c2 10.0.0.15 || echo Ping new active
 	'''
     }
 
