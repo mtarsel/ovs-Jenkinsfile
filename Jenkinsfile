@@ -157,7 +157,8 @@ node ('124') {
     
     stage ('Add 5000 Ports') {
     sh '''
-	cmds=; for i in {1..5000}; do cmds+=" -- add-port br0 port$i -- set Interface port$i type=internal"; done
+	ovs-vsctl add-br br-many
+	cmds=; for i in {1..5000}; do cmds+=" -- add-port br-many port$i -- set Interface port$i type=internal"; done
 	ovs-vsctl $cmds
 	'''
     }
