@@ -6,7 +6,7 @@ node ('124') {
         }
         sh '''
         cd ovs/
-        git checkout v2.8.0
+        git checkout v2.8.1
         '''
     }
 
