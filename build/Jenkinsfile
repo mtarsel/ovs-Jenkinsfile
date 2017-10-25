@@ -33,6 +33,7 @@ node ('124') {
     '''
     }
 
+/*TODO 
     stage('Testing Userspace Datapath') {
     sh '''
 	cd ovs/
@@ -41,12 +42,6 @@ node ('124') {
     '''
     }
 
-    stage('Installed Kernel Module Test') {
-    sh '''
-	cd ovs/
-    	make check-kernel
-    '''
-    }
 
     stage('Building Module') {
     sh '''
@@ -61,7 +56,7 @@ node ('124') {
 	depmod -a
 	modprobe openvswitch
     '''
-    }
+    } */
     stage('Testing Kernel Module from Build') {
     sh '''
 	cd ovs/
